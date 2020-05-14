@@ -7,6 +7,62 @@ request_count = 0
 
 print("\n\n\n\n Running users.py \n\n\n\n")
 
+"""
+@app.route('/api/v1/db/write', methods = ['POST'])
+def write_db():
+	req = request.get_json()
+	req_type = req['type']
+	table_name = req['table']
+	del req['table']
+	del req['type']
+	with sqlite3.connect("rideshare.db") as con:
+		cur = con.cursor()
+		cur.execute("PRAGMA foreign_keys = ON;")
+		if(req_type == "delete"):
+			string = delete(table_name, **req)
+		elif(req_type == "write"):
+			string = upsert(table_name, **req)
+		try:
+			cur.execute(string);
+			return jsonify({})
+		except:
+			abort(500)
+
+@app.route('/api/v1/db/read', methods = ['POST'])
+def read_db():
+	req = request.get_json()
+
+	table_name = req['table']
+	try:
+		where = req['where']
+	except:
+		where = "1"
+	columns = req['columns']
+
+	with sqlite3.connect("rideshare.db") as con:
+		cur = con.cursor()
+		cur.execute("PRAGMA foreign_keys = ON;")
+		string = read(table_name, columns, where)
+		try:
+			cur.execute(string);
+		except:
+			abort(400)
+		data = cur.fetchall()
+		return json.dumps(data)
+
+@app.route('/api/v1/db/clear', methods = ['POST'])
+def clear_db():
+	with sqlite3.connect("rideshare.db") as con:
+		cur = con.cursor()
+		cur.execute("PRAGMA foreign_keys = ON;")
+		try:
+			string = delete('user_details')[:-1] + "1;"
+			cur.execute(string)
+			return jsonify({})
+		except:
+			abort(500)
+"""
+
 @app.route('/api/v1/_count', methods = ['GET'])
 def count_req():
 	global request_count
@@ -28,7 +84,7 @@ def add_user():
 		check_password(password)
 	except:
 		abort(400)
-	res = requests.get('http://Mark-1-901447356.us-east-1.elb.amazonaws.com/api/v1/users')
+	res = requests.get('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/users')
 	try:
 		if(res.status_code != 204):
 			res.json()
@@ -43,7 +99,7 @@ def add_user():
 	if(count != 0):
 		abort(400)
 	json_send = {'username': user_name, 'password': password, 'table': 'user_details', 'type':'write'}
-	res = requests.post('http://Mark-1-901447356.us-east-1.elb.amazonaws.com/api/v1/db/write', json=json_send)
+	res = requests.post('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/write', json=json_send)
 	try:
 		res.json()
 	except:
@@ -56,7 +112,7 @@ def list_users():
 	global request_count
 	request_count += 1
 	json_send = {'table': 'user_details', 'columns': ["username"]}
-	res = requests.post('http://Mark-1-901447356.us-east-1.elb.amazonaws.com/api/v1/db/read', json=json_send)
+	res = requests.post('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/read', json=json_send)
 	try:
 		res.json()
 	except:
@@ -78,7 +134,7 @@ def list_users():
 def remove_user(name):
 	global request_count
 	request_count += 1
-	res = requests.get('http://Mark-1-901447356.us-east-1.elb.amazonaws.com/api/v1/users')
+	res = requests.get('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/users')
 	try:
 		if(res.status_code != 204):
 			res.json()
@@ -94,7 +150,7 @@ def remove_user(name):
 		count += 1
 	if(count > 0):
 		json_send = {'username': name, 'table': 'user_details', 'type':'delete'}
-		res = requests.post('http://Mark-1-901447356.us-east-1.elb.amazonaws.com/api/v1/db/write', json=json_send)
+		res = requests.post('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/write', json=json_send)
 		try:
 			res.json()
 		except:

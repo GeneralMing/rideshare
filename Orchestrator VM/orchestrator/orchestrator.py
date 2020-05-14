@@ -14,7 +14,7 @@ import schedule
 import threading
 from kazoo.client import KazooClient
 from kazoo.client import KazooState
-
+logging.basicConfig()
 
 connection = pika.BlockingConnection(pika.ConnectionParameters('10.0.2.2'))
 channel = connection.channel()
@@ -92,8 +92,6 @@ class write_client(object):
 		self.connection.close()
 		return self.response
 
-logging.basicConfig()
-
 client = docker.from_env()
 
 not_called_by_scale = True
@@ -135,7 +133,7 @@ def watch_children(children):
 		if(deleted_child != []):
 			for i in deleted_child:
 				#print(i)
-				#print(active_containers)
+				#print(active_containers, flush = True)
 				try:
 					del active_containers[i]
 				except:
@@ -174,7 +172,6 @@ reset_counter()
 
 
 app=Flask(__name__)
-
 print("Running orchestrator now!")
 
 
@@ -235,7 +232,7 @@ def kill_master():
 					if(v == str(pid)):
 						key = k
 				del active_containers[key]
-		prev_children = zk.get_children("/producer")
+		#prev_children = zk.get_children("/producer")
 		return jsonify([str(pid)])
 	except:
 		return jsonify({}), 500
@@ -244,21 +241,22 @@ def kill_master():
 def kill_slave():
 	global active_containers
 	global prev_children
+	global not_called_by_scale
 	client = docker.from_env()
 	req = request.get_json()
 	pid_list = []
-	print(active_containers)
+	#print(active_containers)
 	for i in active_containers:
 		if(i != "master"):
 			pid_list.append(int(active_containers[i]))
 	try:
-		print(pid_list)
+		#print(pid_list)
 		pid = sorted(pid_list)[-1]
 	except:
 		return jsonify({}), 500
 	#	print("hi")
 	try:
-		print(active_containers)
+		#print(active_containers)
 		for i in client.containers.list():
 			if(str(pid) == i.top()['Processes'][0][2]):
 				i.kill()
@@ -266,7 +264,8 @@ def kill_slave():
 					if(v == str(pid)):
 						key = k
 				del active_containers[key]
-		prev_children = zk.get_children("/producer")
+		if(not not_called_by_scale):
+			prev_children = zk.get_children("/producer")
 		return jsonify([str(pid)])
 	except:
 		return jsonify({}), 500
@@ -274,6 +273,7 @@ def kill_slave():
 @app.route('/api/v1/worker/list', methods = ['GET'])
 def list_workers():
 	global active_containers
+	#time.sleep(15)
 	req = request.get_json()
 	pid_list = []
 	for i in active_containers:
