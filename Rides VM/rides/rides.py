@@ -6,89 +6,6 @@ request_count = 0
 
 
 print("\n\n\n\n Running rides.py \n\n\n\n")
-"""
-@app.route('/api/v1/db/write', methods = ['POST'])
-def write_db():
-	req = request.get_json()
-	req_type = req['type']
-	table_name = req['table']
-	del req['table']
-	del req['type']
-	with sqlite3.connect("rideshare.db") as con:
-		cur = con.cursor()
-		cur.execute("PRAGMA foreign_keys = ON;")
-		if(req_type == "delete"):
-			string = delete(table_name, **req)
-		elif(req_type == "write"):
-			string = upsert(table_name, **req)
-		try:
-			cur.execute(string);
-			return jsonify({})
-		except:
-			abort(500)
-
-@app.route('/api/v1/db/read', methods = ['POST'])
-def read_db():
-	req = request.get_json()
-
-	table_name = req['table']
-	try:
-		where = req['where']
-	except:
-		where = "1"
-	columns = req['columns']
-
-	with sqlite3.connect("rideshare.db") as con:
-		cur = con.cursor()
-		cur.execute("PRAGMA foreign_keys = ON;")
-		string = read(table_name, columns, where)
-		try:
-			cur.execute(string);
-		except:
-			abort(400)
-		data = cur.fetchall()
-		return json.dumps(data)
-
-
-@app.route('/api/v1/db/clear', methods = ['POST'])
-def clear_db():
-	with sqlite3.connect("rideshare.db") as con:
-		cur = con.cursor()
-		cur.execute("PRAGMA foreign_keys = ON;")
-		try:
-			string = delete('ride_join')[:-1] + "1;"
-			cur.execute(string)
-			string = delete('rides')[:-1] + "1;"
-			cur.execute(string)
-		except:
-			abort(500)
-	res = requests.post("http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/clear", json = {})
-	if(res.status_code == 200):
-		return  jsonify({})
-	else:
-		abort(405)
-
-
-
-@app.route('/api/v1/db/clear', methods = ['POST'])
-def clear_db():
-	with sqlite3.connect("rideshare.db") as con:
-		cur = con.cursor()
-		cur.execute("PRAGMA foreign_keys = ON;")
-		try:
-			string = delete('ride_join')[:-1] + "1;"
-			cur.execute(string)
-			string = delete('rides')[:-1] + "1;"
-			cur.execute(string)
-		except:
-			abort(500)
-	res = requests.post("http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/clear", json = {})
-	if(res.status_code == 200):
-		return  jsonify({})
-	else:
-		abort(405)
-
-"""
 
 @app.route('/api/v1/_count', methods = ['GET'])
 def count_req():
@@ -105,7 +22,7 @@ def del_req():
 def clear_db():
 	global request_count
 	request_count += 1
-	res = requests.post("http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/clear", json = {})
+	res = requests.post("http://localhost/api/v1/db/clear", json = {})
 	if(res.status_code == 200):
 		return  jsonify({})
 	else:
@@ -130,7 +47,7 @@ def new_ride():
 	entry = engineer(time)
 	if(cols2[int(source['source']) - 1] == cols2[int(destination['destination']) - 1]):
 		return jsonify({}), 400
-	res = requests.get('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/users')
+	res = requests.get('http://localhost/api/v1/users')
 	try:
 		if(res.status_code != 204):
 			res.json()
@@ -143,7 +60,7 @@ def new_ride():
 				count += 1
 	if(count > 0):
 		json_send = {'username': user_name['created_by'], 'source': cols2[int(source['source']) - 1], 'destination': cols2[int(destination['destination']) - 1], 'timess': entry, 'table': 'rides', 'type':'write'}
-		res = requests.post('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/write', json=json_send)
+		res = requests.post('http://localhost/api/v1/db/write', json=json_send)
 		try:
 			res.json()
 		except:
@@ -163,7 +80,7 @@ def get_ride():
 		abort(400)
 	ride_holder = []
 	json_send = {'table': 'rides', 'columns': ["*"], "where": "source = '" + cols2[int(source) - 1] + "' and destination = '" + cols2[int(destination) - 1] + "'"}
-	res = requests.post('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/read', json=json_send)
+	res = requests.post('http://localhost/api/v1/db/read', json=json_send)
 	try:
 		res.json()
 	except:
@@ -188,7 +105,7 @@ def list_ride(ride_id):
 	request_count += 1
 
 	json_send = {'table': 'rides', 'columns': ["*"], "where": "ride_id = '" + str(ride_id) + "'"}
-	res = requests.post('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/read', json=json_send)
+	res = requests.post('http://localhost/api/v1/db/read', json=json_send)
 	try:
 		res.json()
 	except:
@@ -199,7 +116,7 @@ def list_ride(ride_id):
 	if(count == 0):
 		return jsonify({}), 204
 	json_send = {'table': 'ride_join', 'columns': ["*"], "where": "ride_id = '" + str(ride_id) + "'"}
-	res = requests.post('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/read', json=json_send)
+	res = requests.post('http://localhost/api/v1/db/read', json=json_send)
 	try:
 		res.json()
 	except:
@@ -207,7 +124,7 @@ def list_ride(ride_id):
 	for i in res.json():
 		users.append(i[0])
 	json_send = {'table': 'rides', 'columns': ["*"], "where": "ride_id = '" + str(ride_id) + "'"}
-	res = requests.post('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/read', json=json_send)
+	res = requests.post('http://localhost/api/v1/db/read', json=json_send)
 	try:
 		res.json()
 	except:
@@ -221,7 +138,7 @@ def join_ride(ride_id):
 	global request_count
 	request_count += 1
 	json_send = {'table': 'rides', 'columns': ["*"], "where": "ride_id = '" + str(ride_id) + "'"}
-	res = requests.post('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/read', json=json_send)
+	res = requests.post('http://localhost/api/v1/db/read', json=json_send)
 	try:
 		res.json()
 	except:
@@ -232,7 +149,7 @@ def join_ride(ride_id):
 	if(count == 0):
 		return jsonify({}), 204
 	username = request.get_json('username')['username']
-	res = requests.get('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/users')
+	res = requests.get('http://localhost/api/v1/users')
 	try:
 		if(res.status_code != 204):
 			res.json()
@@ -245,7 +162,7 @@ def join_ride(ride_id):
 				count += 1
 	if(count > 0):
 		json_send = {'username': username, 'ride_id': str(ride_id), 'table': 'ride_join', 'type':'write'}
-		res = requests.post('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/write', json=json_send)
+		res = requests.post('http://localhost/api/v1/db/write', json=json_send)
 		try:
 			res.json()
 		except:
@@ -259,7 +176,7 @@ def delete_ride(ride_id):
 	request_count += 1
 
 	json_send = {'table': 'rides', 'columns': ["*"], "where": "ride_id = '" + str(ride_id) + "'"}
-	res = requests.post('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/read', json=json_send)
+	res = requests.post('http://localhost/api/v1/db/read', json=json_send)
 	try:
 		res.json()
 	except:
@@ -270,13 +187,13 @@ def delete_ride(ride_id):
 	if(count == 0):
 		return jsonify({}), 204
 	json_send = {'ride_id': str(ride_id), 'table': 'ride_join', 'type':'delete'}
-	res = requests.post('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/write', json=json_send)
+	res = requests.post('http://localhost/api/v1/db/write', json=json_send)
 	try:
 		res.json()
 	except:
 		abort(400)
 	json_send = {'ride_id': str(ride_id), 'table': 'rides', 'type':'delete'}
-	res = requests.post('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/write', json=json_send)
+	res = requests.post('http://localhost/api/v1/db/write', json=json_send)
 	try:
 		res.json()
 	except:
@@ -289,7 +206,7 @@ def num_rides():
 	request_count += 1
 
 	json_send = {'table': 'rides', 'columns': ["*"], "where": "1"}
-	res = requests.post('http://test-855239080.us-east-1.elb.amazonaws.com/api/v1/db/read', json=json_send)
+	res = requests.post('http://localhost/api/v1/db/read', json=json_send)
 	try:
 		res.json()
 	except:
