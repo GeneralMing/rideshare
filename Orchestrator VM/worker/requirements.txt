@@ -9,7 +9,7 @@ Jinja2==2.11.3
 MarkupSafe==1.1.1
 requests==2.22.0
 simplejson==3.17.0
-urllib3==1.25.8
+urllib3==1.26.5
 Werkzeug==0.16.1
 kazoo==2.7.0
 pika==1.1.0
