@@ -83,9 +83,7 @@ I'm always available on Discord going by the ID General Ming#7573 . Free free to
 ## Authors
 
 * **Advaith K Vasisht**
-* **Rohan Kamath**
 * **Abhiram G K**
-* **Yamini Cherukuri**
 
 
 ## License
