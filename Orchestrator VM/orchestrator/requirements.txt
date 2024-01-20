@@ -10,7 +10,7 @@ MarkupSafe==1.1.1
 requests==2.22.0
 simplejson==3.17.0
 urllib3==1.26.5
-Werkzeug==0.16.1
+Werkzeug==2.2.3
 kazoo==2.7.0
 pika==1.1.0
 schedule==0.6.0
