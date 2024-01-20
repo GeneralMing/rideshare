@@ -7,7 +7,7 @@ idna==2.8
 itsdangerous==1.1.0
 Jinja2==2.11.1
 MarkupSafe==1.1.1
-requests==2.22.0
+requests==2.31.0
 simplejson==3.17.0
 urllib3==1.25.8
 Werkzeug==0.16.1
